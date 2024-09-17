@@ -43,13 +43,20 @@ export default function Home() {
       {isError && <p className="text-lg text-red-600">Error loading, please try again later</p>}
       {rankList && (
         <ul className="w-full max-w-2xl space-y-4 mb-12">
-          {rankList.map((project) => (
-            <li key={project.fields.id} className="bg-white shadow-md rounded-lg p-4 hover:shadow-lg transition-shadow duration-300">
-              <h2 className="text-xl font-bold text-gray-800 mb-2">{project.fields.name}</h2>
-              <p className="text-gray-600 mb-2">Votes: <span className="font-semibold">{project.fields.votes}</span></p>
-              <div className="flex space-x-4">
-                <a href={project.fields.github_url} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-800 transition-colors duration-300">GitHub</a>
-                <a href={project.fields.walrus_site_url} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-800 transition-colors duration-300">Walrus Site</a>
+          {rankList.map((project, index) => (
+            <li key={project.fields.id} className="bg-white shadow-md rounded-lg p-4 hover:shadow-lg transition-shadow duration-300 flex justify-between items-center">
+              <div className="flex items-center flex-grow">
+                <div>
+                  <h2 className="text-xl font-bold text-gray-800 mb-2">{project.fields.name}</h2>
+                  <p className="text-gray-600 mb-2">Votes: <span className="font-semibold">{project.fields.votes}</span></p>
+                  <div className="flex space-x-4">
+                    <a href={project.fields.github_url} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-800 transition-colors duration-300">GitHub</a>
+                    <a href={project.fields.walrus_site_url} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-800 transition-colors duration-300">Walrus Site</a>
+                  </div>
+                </div>
+              </div>
+              <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center text-white font-bold ml-4">
+                {index + 1}
               </div>
             </li>
           ))}
