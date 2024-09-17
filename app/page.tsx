@@ -1,101 +1,60 @@
-import Image from "next/image";
+'use client'
+import { getFullnodeUrl, SuiClient } from '@mysten/sui/client';
+import { useQuery } from '@tanstack/react-query';
+
+interface Project {
+  fields: {
+    description: string;
+    github_url: string;
+    walrus_site_url: string;
+    id: string;
+    name: string;
+    video_blob_id: string;
+    votes: number;
+  };
+  type: string;
+}
 
 export default function Home() {
-  return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="https://nextjs.org/icons/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-semibold">
-              app/page.tsx
-            </code>
-            .
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
+  const client = new SuiClient({ url: getFullnodeUrl('mainnet') });
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="https://nextjs.org/icons/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
-        </div>
-      </main>
-      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+  const getRankList = async (): Promise<Project[]> => {
+    const res: any = await client.getObject({
+      id: `0x097affa9fd35bc136c9f54b6617fbb24655325694fd23271f7a7ed3b6bd98c6c`,
+      options: {
+        showContent: true,
+        showType: true
+      }
+    });
+    const projectList: Project[] = res.data.content.fields.project_list;
+    console.log('test', projectList, projectList.sort((a, b) => b.fields.votes - a.fields.votes).length);
+    
+    return projectList.sort((a, b) => b.fields.votes - a.fields.votes);
+  }
+
+  const { data: rankList, isLoading, isError } = useQuery({
+    queryKey: ['rankList'],
+    queryFn: getRankList
+  });
+
+  return (
+    <div className="grid grid-rows-[auto_1fr_auto] items-start justify-items-center min-h-screen py-12 px-8 gap-16 sm:px-20 font-[family-name:var(--font-geist-sans)] overflow-y-auto">
+      {isLoading && <p className="text-lg text-gray-600">Loading...</p>}
+      {isError && <p className="text-lg text-red-600">Error loading, please try again later</p>}
+      {rankList && (
+        <ul className="w-full max-w-2xl space-y-4 mb-12">
+          {rankList.map((project) => (
+            <li key={project.fields.id} className="bg-white shadow-md rounded-lg p-4 hover:shadow-lg transition-shadow duration-300">
+              <h2 className="text-xl font-bold text-gray-800 mb-2">{project.fields.name}</h2>
+              <p className="text-gray-600 mb-2">Votes: <span className="font-semibold">{project.fields.votes}</span></p>
+              <div className="flex space-x-4">
+                <a href={project.fields.github_url} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-800 transition-colors duration-300">GitHub</a>
+                <a href={project.fields.walrus_site_url} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-800 transition-colors duration-300">Walrus Site</a>
+              </div>
+            </li>
+          ))}
+        </ul>
+      )}
     </div>
   );
 }
